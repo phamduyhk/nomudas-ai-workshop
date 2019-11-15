@@ -35,7 +35,7 @@ def save(name, img):
 
 
 def ls(dirname):
-    return [dirname + i for i in os.listdir(dirname)]
+    return [path.join(dirname,i) for i in os.listdir(dirname)]
 
 
 def preprocessing(train_dir, test_dir):
@@ -66,7 +66,7 @@ def preprocessing(train_dir, test_dir):
 
     sys.stdout.write('Loading... ')
 
-    train_files = ls(cache_test_dir)
+    train_files = ls(cache_train_dir)
     train = np.array([read(i) for i in train_files])
 
     test_files = ls(cache_test_dir)
@@ -126,4 +126,5 @@ if __name__ == "__main__":
     cache_train_dir, cache_test_dir, train, test = preprocessing(
         train_dir=TRAIN_DIR, test_dir=TEST_DIR)
     labels = make_label(train_files_dir=cache_train_dir)
+    print("done preprocessing")
 

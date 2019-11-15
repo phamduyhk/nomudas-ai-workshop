@@ -107,6 +107,12 @@ if __name__ == "__main__":
         train_dir=TRAIN_DIR, test_dir=TEST_DIR)
     labels = preprocessing.make_label(train_files_dir=cache_train_dir)
 
+    """
+    Customize model in here
+    epochs=1
+    batch_size=32
+    validation_split=0.25
+    """
     model, history = run_model(train=train,labels=labels,epochs=1,batch_size=32,validation_split=0.25)
     plot_history(history)
     model.save('model.h5')
