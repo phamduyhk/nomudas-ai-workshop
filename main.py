@@ -73,17 +73,33 @@ if FORCE_CONVERT or len(test) < 12500:
 print("Train shape: {}".format(train.shape))
 print("Test shape: {}".format(test.shape))
 
-labels = []
-for i in train_files:
-    if 'dog' in i:
-        labels.append(0)
-    else:
-        labels.append(1)
 
-sns.countplot(labels)
-plt.title('Dogs and Cats')
+def make_label(train_files_dir):
+    """
+        Args::
+            - train_files_dir (str)                        : folder chứa data đã covert sang cỡ ảnh 224*224*3
 
-labels = to_categorical(labels)
+        Returns::
+            - labels
+
+        Details::
+            - make label with dataset
+        """
+    labels = []
+    for i in train_files_dir:
+        if 'dog' in i:
+            labels.append(0)
+        else:
+            labels.append(1)
+
+    # sns.countplot(labels)
+    # plt.title('Dogs and Cats')
+
+    labels = to_categorical(labels)
+
+    return labels
+
+labels = make_label(train_files_dir=train_files)
 
 train_dogs = [i for i in train_files if 'dog' in i]
 train_cats = [i for i in train_files if 'cat' in i]
@@ -96,8 +112,8 @@ def show_train_image(i):
     plt.imshow(pair)
     plt.show()
 
-for i in range(0,5):
-    show_train_image(i)
+# for i in range(0,5):
+#     show_train_image(i)
 
 
 def conv2d(filters, kernel_size, strides=1, bias_init=1, **kwargs):
@@ -164,7 +180,7 @@ def run_model():
     model.summary()
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1, mode='auto')
-    history = model.fit(train, labels, epochs=15, batch_size=128, shuffle=True, validation_split=0.25, callbacks=[early_stopping])
+    history = model.fit(train, labels, epochs=1, batch_size=128, shuffle=True, validation_split=0.25, callbacks=[early_stopping])
     return history
 
 

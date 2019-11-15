@@ -1,85 +1,113 @@
-# plot dog photos from the dogs vs cats dataset
-from matplotlib import pyplot
-from matplotlib.image import imread
-from os import listdir
-from numpy import asarray
-from numpy import save
-import os
+from keras.initializers import TruncatedNormal, Constant
+from keras.models import Sequential
+from keras.optimizers import SGD
+from keras.layers import Input, Dropout, Flatten, Conv2D, MaxPooling2D, Dense, Activation, BatchNormalization
+from keras.callbacks import Callback, EarlyStopping
+from keras.utils.np_utils import to_categorical
+import matplotlib.pyplot as plt
 import numpy as np
 
-# Deep lib
-from keras.preprocessing.image import load_img
-from keras.preprocessing.image import img_to_array
+import preprocessing
 
-# define location of dataset
-folder = 'data/train/'
+ROWS = 224
+COLS = 224
+CHANNELS = 3
+
+def conv2d(filters, kernel_size, strides=1, bias_init=1, **kwargs):
+    trunc = TruncatedNormal(mean=0.0, stddev=0.01)
+    cnst = Constant(value=bias_init)
+    return Conv2D(
+        filters,
+        kernel_size,
+        strides=strides,
+        padding='same',
+        activation='relu',
+        kernel_initializer=trunc,
+        bias_initializer=cnst,
+        **kwargs
+    )
+
+def dense(units, **kwargs):
+    trunc = TruncatedNormal(mean=0.0, stddev=0.01)
+    cnst = Constant(value=1)
+    return Dense(
+        units,
+        activation='tanh',
+        kernel_initializer=trunc,
+        bias_initializer=cnst,
+        **kwargs
+    )
+
+def AlexNet():
+    model = Sequential()
+
+    # 第1畳み込み層
+    model.add(conv2d(96, 11, strides=(4,4), bias_init=0, input_shape=(ROWS, COLS, 3)))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+    model.add(BatchNormalization())
+
+    # 第２畳み込み層
+    model.add(conv2d(256, 5, bias_init=1))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+    model.add(BatchNormalization())
+
+    # 第３~5畳み込み層
+    model.add(conv2d(384, 3, bias_init=0))
+    model.add(conv2d(384, 3, bias_init=1))
+    model.add(conv2d(256, 3, bias_init=1))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+    model.add(BatchNormalization())
+
+    # 密結合層
+    model.add(Flatten())
+    model.add(dense(4096))
+    model.add(Dropout(0.5))
+    model.add(dense(4096))
+    model.add(Dropout(0.5))
+
+    # 読み出し層
+    model.add(Dense(2, activation='softmax'))
+
+    model.compile(optimizer=SGD(lr=0.01), loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
 
 
-def plot_image(folder):
-    # plot first few images
-    for i in range(9):
-        # define subplot
-        pyplot.subplot(330 + 1 + i)
-        # define filename
-        filename = folder + 'dog.' + str(i) + '.jpg'
-        # load image pixels
-        image = imread(filename)
-        # plot raw pixel data
-        pyplot.imshow(image)
-    # show the figure
-    pyplot.show()
-    
-def plot_cat_in_train(folder):
-    # plot cat photos from the dogs vs cats dataset
-    # plot first few images
-    for i in range(9):
-        # define subplot
-        pyplot.subplot(330 + 1 + i)
-        # define filename
-        filename = folder + 'cat.' + str(i) + '.jpg'
-        # load image pixels
-        image = imread(filename)
-        # plot raw pixel data
-        pyplot.imshow(image)
-    # show the figure
-    pyplot.show()
+def run_model(train, labels, epochs=15, batch_size=128, validation_split=0.25):
+    model = AlexNet()
+    model.summary()
 
-def load_data(folder):
-    # load dogs vs cats dataset, reshape and save to a new file
-    photos, labels = list(), list()
-    # enumerate files in the directory
-    for file in listdir(folder):
-        # determine class
-        output = 0.0
-        if file.startswith('cat'):
-            output = 1.0
-        # load image
-        photo = load_img(folder + file, target_size=(200, 200))
-        # convert to numpy array
-        photo = img_to_array(photo)
-        # store
-        photos.append(photo)
-        labels.append(output)
-    # convert to a numpy arrays
-    photos = asarray(photos)
-    labels = asarray(labels)
-    print(photos.shape, labels.shape)
-    # save the reshaped photos
-    save('dogs_vs_cats_photos.npy', photos)
-    save('dogs_vs_cats_labels.npy', labels)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1, mode='auto')
+    history = model.fit(train, labels, epochs=epochs, batch_size=batch_size, shuffle=True, validation_split=validation_split, callbacks=[early_stopping])
+    return model, history
 
-    # load and confirm the shape
-    # photos = np.load('dogs_vs_cats_photos.npy')
-    # labels = np.load('dogs_vs_cats_labels.npy')
-    # print(photos.shape, labels.shape)
 
-def create_data():
-    # create directories
-    dataset_home = 'dataset_dogs_vs_cats/'
-    subdirs = ['train/', 'test/']
-    for subdir in subdirs:
-        # create label subdirectories
-        labeldirs = ['dogs/', 'cats/']
-        for labldir in labeldirs:
-            newdir = dataset_home + subdir + labldir
-            os.makedirs(newdir, exist_ok=True)
+def plot_history(history):
+    plt.plot(history.history['acc'],"o-",label="accuracy")
+    plt.plot(history.history['val_acc'],"o-",label="val_acc")
+    plt.title('model accuracy')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.ylim(0, 1)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    plt.show()
+
+    plt.plot(history.history['loss'],"o-",label="loss",)
+    plt.plot(history.history['val_loss'],"o-",label="val_loss")
+    plt.title('model loss')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.ylim(ymin=0)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    plt.show()
+
+if __name__ == "__main__":
+    TRAIN_DIR = 'train/'
+    TEST_DIR = 'test/'
+    cache_train_dir, cache_test_dir, train, test = preprocessing.preprocessing(
+        train_dir=TRAIN_DIR, test_dir=TEST_DIR)
+    labels = preprocessing.make_label(train_files_dir=cache_train_dir)
+
+    model, history = run_model(train=train,labels=labels,epochs=1,batch_size=32,validation_split=0.25)
+    plot_history(history)
+    model.save('model.h5')
+    model.save_weights('param.hdf5')
