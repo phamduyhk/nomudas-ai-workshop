@@ -26,17 +26,31 @@ def read_img(name):
 import keras
 
 def predict(file_name):
-    try:
-        data = np.array(read_img(file_name))
-        model = keras.models.load_model('model.h5')
-        model.load_weights('param.hdf5')
-        prediction = model.predict(data)
-        print("Prediction: {}".format(prediction))
-    except OSError as e:
-        print("ERROR: You must run train.py at first!")
+    data = np.array(read_img(file_name))
+    model = keras.models.load_model('model.h5')
+    model.load_weights('param.hdf5')
+    prediction = model.predict(data)
+    if prediction is 0:
+        result = "dog"
+    else:
+        result = "cat"
+    print("Prediction result: {}".format(result))
+    return result
+    
     
 if __name__ == "__main__":
-    print("Target file: {}".format(sys.argv[1]))
-    predict(sys.argv[1])
+    try:
+        if len(sys.argv)<2:
+            print("Usage: python predict.py [path of your file]. eg: python predict.py ./test/1.jpg")
+        else:
+            print("Target file: {}".format(sys.argv[1]))
+            result = predict(sys.argv[1])
+            I = cv2.imread(sys.argv[1])
+            cv2.namedWindow(result)
+            cv2.imshow(result, I)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+    except OSError as e:
+        print("ERROR: You must run train.py at first!")
 
 
