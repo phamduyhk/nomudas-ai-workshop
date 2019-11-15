@@ -82,8 +82,8 @@ def run_model(train, labels, epochs=15, batch_size=128, validation_split=0.25):
 
 
 def plot_history(history):
-    plt.plot(history.history['acc'],"o-",label="accuracy")
-    plt.plot(history.history['val_acc'],"o-",label="val_acc")
+    plt.plot(history.history['accuracy'],"o-",label="accuracy")
+    plt.plot(history.history['val_accuracy'],"o-",label="val_accuracy")
     plt.title('model accuracy')
     plt.xlabel('epoch')
     plt.ylabel('accuracy')
