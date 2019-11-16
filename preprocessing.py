@@ -24,15 +24,12 @@ FORCE_CONVERT = False
 def read(name):
     return cv2.imread(name, cv2.IMREAD_COLOR)
 
-
 def convert(img):
     return cv2.resize(img, (ROWS, COLS), interpolation=cv2.INTER_CUBIC)
-
 
 def save(name, img):
     cv2.imwrite(CACHE_DIR + name, img)
     return img
-
 
 def ls(dirname):
     return [path.join(dirname,i) for i in os.listdir(dirname)]
@@ -74,19 +71,19 @@ def preprocessing(train_dir, test_dir):
 
     print('Done!')
 
-    if FORCE_CONVERT or len(train) < 25000:
-        sys.stdout.write('Process train data... ')
-        train = np.array([save(path.join(train_dir,i), convert(read(path.join(train_dir,i))))
-                          for i in os.listdir(train_dir)])
-        train_files = ls(cache_train_dir)
-        print('Done!')
+    # if FORCE_CONVERT or len(train) < 25000:
+    #     sys.stdout.write('Process train data... ')
+    #     train = np.array([save(path.join(train_dir,i), convert(read(path.join(train_dir,i))))
+    #                       for i in os.listdir(train_dir)])
+    #     train_files = ls(cache_train_dir)
+    #     print('Done!')
 
-    if FORCE_CONVERT or len(test) < 12500:
-        sys.stdout.write('Process test data... ')
-        test = np.array([save(path.join(test_dir,i), convert(read(path.join(test_dir,i))))
-                         for i in os.listdir(test_dir)])
-        test_files = ls(cache_test_dir)
-        print('Done!')
+    # if FORCE_CONVERT or len(test) < 12500:
+    #     sys.stdout.write('Process test data... ')
+    #     test = np.array([save(path.join(test_dir,i), convert(read(path.join(test_dir,i))))
+    #                      for i in os.listdir(test_dir)])
+    #     test_files = ls(cache_test_dir)
+    #     print('Done!')
 
     print("Train shape: {}".format(train.shape))
     print("Test shape: {}".format(test.shape))

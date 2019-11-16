@@ -82,8 +82,8 @@ def run_model(train, labels, epochs=15, batch_size=128, validation_split=0.25):
 
 
 def plot_history(history):
-    plt.plot(history.history['accuracy'],"o-",label="accuracy")
-    plt.plot(history.history['val_accuracy'],"o-",label="val_acc")
+    plt.plot(history.history['acc'],"o-",label="accuracy")
+    plt.plot(history.history['val_acc'],"o-",label="val_acc")
     plt.title('model accuracy')
     plt.xlabel('epoch')
     plt.ylabel('accuracy')
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     batch_size=32
     validation_split=0.25
     """
-    model, history = run_model(train=train,labels=labels,epochs=1,batch_size=32,validation_split=0.25)
+    model, history = run_model(train=train,labels=labels,epochs=10,batch_size=128,validation_split=0.25)
     plot_history(history)
     model.save('model.h5')
     model.save_weights('param.hdf5')
