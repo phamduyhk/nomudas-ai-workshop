@@ -4,3 +4,7 @@ test/
 train/
 cache/
 cache.zip
+
+.idea/
+__pycache__/
+output/
